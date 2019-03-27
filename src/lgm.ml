@@ -1,27 +1,16 @@
 open Owl
-(** ---- Parameters ---  **)
-(* n: number of variables 
- * d: number of latent variables 
- * nll: negative loglikelihood of data 
- * data: n x n_samples
- * xs: mean removed data
- * mu: mean
- * w: n x d Mat.mat 
- * sigma: n x 1 Mat.mat 
- * *)
 
 let negloglik data w sigma =
   let n, n_samples = Mat.shape data in
   let xs = Mat.(data - mean ~axis:1 data) in
   let d = Mat.col_num w in
-  let gamma = Mat.((diagm sigma) + (w *@ transpose w)) in
   let inv_gamma = 
     (* use matrix inversion lemma to speed up computations *)
-    let inv_sigma = Mat.(diagm (1. $/ sigma)) in
-    Mat.(inv_sigma *@ ((eye n) - w *@ (inv ((eye d) + (transpose w) *@ inv_sigma *@ w)) *@ (transpose w) *@ inv_sigma)) in
+    let inv_sigma = Mat.(1. $/ sigma) in
+    Mat.(inv_sigma * ((eye n) - w *@ (inv ((eye d) + (transpose w) *@ (inv_sigma * w))) *@ (transpose w) * (transpose inv_sigma))) in
   let nll = 
     Mat.(sum' (((transpose xs) *@ inv_gamma) * (transpose xs))) /. (float n_samples) 
-    +. (Linalg.D.logdet gamma) in 
+    -. (Linalg.D.logdet inv_gamma) in 
   nll 
 
 let infer ?(verbose=true) ?(tol=1E-5) ?(every=10) ?(max_steps=1000) ?(model=`fa) data d = 
@@ -33,14 +22,13 @@ let infer ?(verbose=true) ?(tol=1E-5) ?(every=10) ?(max_steps=1000) ?(model=`fa)
   let w = Mat.gaussian n d in
   let sigma = Mat.ones n 1 in
   let rec iterate nll_ step w sigma =
-    let gamma = Mat.((diagm sigma) + (w *@ transpose w)) in
     let inv_gamma = 
       (* use matrix inversion lemma to speed up computations *)
-      let inv_sigma = Mat.(diagm (1. $/ sigma)) in
-      Mat.(inv_sigma *@ ((eye n) - w *@ (inv ((eye d) + (transpose w) *@ inv_sigma *@ w)) *@ (transpose w) *@ inv_sigma)) in
+      let inv_sigma = Mat.(1. $/ sigma) in
+      Mat.(inv_sigma * ((eye n) - w *@ (inv ((eye d) + (transpose w) *@ (inv_sigma * w))) *@ (transpose w) * (transpose inv_sigma))) in
     let nll = 
       Mat.(sum' (((transpose xs) *@ inv_gamma) * (transpose xs))) /. (float n_samples) 
-      +. (Linalg.D.logdet gamma) in 
+      -. (Linalg.D.logdet inv_gamma) in 
     let pct_change = (nll_ -. nll) /. nll_ in
     if step mod every = 0 && verbose then 
       Printf.printf "step %i | nll: %f | pct_change: %f \n%!" step nll pct_change;
