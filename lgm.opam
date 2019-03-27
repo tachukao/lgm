@@ -1,0 +1,16 @@
+opam-version: "2.0"
+maintainer: "tck"
+authors: [ "Ta-Chu Calvin Kao" ]
+license: "MIT"
+homepage: "https://github.com/tachukao/lgm"
+dev-repo: "git+https://github.com/tachukao/lgm.git"
+bug-reports: "https://github.com/tachukao/lgm/issues"
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
+depends: [
+  "ocaml" {>= "4.06.0"}
+  "owl" {>= "0.5.0"}
+  "dune" {build & >= "1.1.0"}
+]
+synopsis: "Factor analysis & probabilistic PCA" 

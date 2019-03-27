@@ -1,0 +1,5 @@
+(executable
+   (name artificial)
+   (libraries owl lgm)
+   (modules artificial)
+)
