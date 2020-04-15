@@ -1,0 +1,5 @@
+profile=janestreet
+wrap-comments=false
+align-cases=true
+let-binding-spacing=sparse
+module-item-spacing=sparse
