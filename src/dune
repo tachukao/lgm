@@ -1,5 +1,4 @@
 (library
-   (name lgm)
-   (public_name lgm)
-   (libraries owl)
-)
+ (name lgm)
+ (public_name lgm)
+ (libraries owl))
